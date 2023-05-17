@@ -1,6 +1,6 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 const app = express();
 
@@ -41,6 +41,42 @@ const studentSchema = new mongoose.Schema({
 
 });
 const Student = mongoose.model('Student', studentSchema);
+
+
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+
+
+const sendVerificationEmail = async (email, code) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      // Configure your email service provider settings
+      // Example: Gmail SMTP
+      service: 'gmail',
+      auth: {
+        user: 'schooManagement@gmail.com',
+        pass: 'schools',
+      },
+    });
+
+    const mailOptions = {
+      from: 'schooManagement@gmail.com',
+      to: email,
+      subject: 'Student Registration - Email Verification',
+      text: `Your verification code is: ${code}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    throw error;
+  }
+};
+
+
+const verificationCodes = new Map();
+
 
 app.post('/api/courses', async (req, res) => {
   try {
@@ -156,6 +192,39 @@ app.delete('/api/students/:id', async (req, res) => {
     res.status(200).send('Student deleted successfully.');
   } catch (err) {
     res.status(500).send(err);
+  }
+});
+
+
+app.post('/api/register', (req, res) => {
+  const { name, email } = req.body;
+
+  const code = generateVerificationCode();
+
+  verificationCodes.set(email, code);
+
+
+  sendVerificationEmail(email, code)
+    .then(() => {
+      res.status(200).json({ message: 'Verification email sent successfully' });
+    })
+    .catch((error) => {
+      res.status(500).json({ error: 'Failed to send verification email' });
+    });
+});
+
+
+app.post('/api/verify', (req, res) => {
+  const { email, code } = req.body;
+
+  const storedCode = verificationCodes.get(email);
+
+  if (storedCode && storedCode === code) {
+
+    res.status(200).json({ message: 'Verification successful' });
+  } else {
+
+    res.status(400).json({ error: 'Invalid verification code' });
   }
 });
 
