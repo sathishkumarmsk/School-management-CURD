@@ -59,12 +59,16 @@ Access the application at http://localhost:5000.
     POST /api/courses: Create a new course
     PUT /api/courses/:id: Update a course by ID
     DELETE /api/courses/:id: Delete a course by ID
-    Staff
+
+### Staff
+
     GET /api/staff: Get all staff members
     POST /api/staff: Create a new staff member
     PUT /api/staff/:id: Update a staff member by ID
     DELETE /api/staff/:id: Delete a staff member by ID
-    Students
+
+### Students
+
     GET /api/students: Get all students
     POST /api/students: Create a new student
     PUT /api/students/:id: Update a student by ID
